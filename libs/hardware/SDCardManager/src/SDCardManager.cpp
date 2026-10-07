@@ -277,7 +277,11 @@ std::vector<String> SDCardManager::listFiles(const char* path, const int maxFile
   }
 
   int count = 0;
-  char name[128];
+  // PaperRead: was 128. A UTF-8 CJK path costs 3 bytes per character, so a
+  // 40-character Chinese filename plus its directory already overflows 128 and
+  // getName() silently truncates it -- the entry lists but can never be opened.
+  // Longest path measured in the field: 206 bytes.
+  char name[512];
   for (auto f = root.openNextFile(); f && count < maxFiles; f = root.openNextFile()) {
     if (f.isDirectory()) {
       f.close();
